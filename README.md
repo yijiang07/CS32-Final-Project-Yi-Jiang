@@ -9,7 +9,28 @@ Final Project for CS32
 
 - Code Style: PEP 8
 
-- Screenshots: 
+- Screenshots: N/A
+
+- Tech/Framework Used:
+
+- Features:
+
+- Code Examples: In progress
+
+- Installation: N/A
+
+- API Reference: N/A
+
+- Tests: In progress
+
+- How to use: In progress
+
+- Contribute: N/A
+
+- Credits: N/A
+
+- License: N/A 
+
 
 
 use bullet points
