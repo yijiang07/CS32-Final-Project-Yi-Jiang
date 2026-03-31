@@ -5,7 +5,7 @@ Final Project for CS32
 
 - Motivation: I decided
 
-- Build Status: In progress 
+- Build Status: In progress
 
 - Code Style: PEP 8
 
@@ -30,8 +30,3 @@ Final Project for CS32
 - Credits: N/A
 
 - License: N/A
-
-
-
-use bullet points
-detailed
