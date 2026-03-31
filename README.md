@@ -7,7 +7,8 @@ Final Project for CS32
               either play another player or the computer because I thought that
               it implements the tools and code that we have learned in class
               very well--specifically loops, arrays, conditionals, and networking
-              between servers. 
+              between servers. I also think it might be interesting to implement
+              a computer that makes the 
 
 - Build Status: In progress
 
