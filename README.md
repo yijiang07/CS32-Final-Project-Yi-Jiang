@@ -8,7 +8,11 @@ Final Project for CS32
               it implements the tools and code that we have learned in class
               very well--specifically loops, arrays, conditionals, and networking
               between servers. I also think it might be interesting to implement
-              a computer that makes the 
+              a computer that makes the perfect move everytime/offer the player the
+              computer difficulty that they want to play. Since Connect 4 is a solved
+              game, this perfect move choice by the computer is possible. Furthermore,
+              I think Connect 4 itself is a relatively intuitive game, and would be easy
+              for users to play. 
 
 - Build Status: In progress
 
