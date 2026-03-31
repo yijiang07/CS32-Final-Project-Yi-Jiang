@@ -5,15 +5,15 @@ Final Project for CS32
 
 - Motivation: I decided
 
-- Build Status:
+- Build Status: In progress 
 
 - Code Style: PEP 8
 
 - Screenshots: N/A
 
-- Tech/Framework Used:
+- Tech/Framework Used: In progress
 
-- Features:
+- Features: The program will have functionality for the Connect 4 Game, allow playing against the computer as well as another player, will keep track of how many wins each player has, and give the players an option to play again, etc.
 
 - Code Examples: In progress
 
@@ -29,7 +29,7 @@ Final Project for CS32
 
 - Credits: N/A
 
-- License: N/A 
+- License: N/A
 
 
 
