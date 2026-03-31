@@ -7,7 +7,9 @@ Final Project for CS32
 
 - Build Status:
 
-- Code Style: 
+- Code Style: PEP 8
+
+- Screenshots: 
 
 
 use bullet points
