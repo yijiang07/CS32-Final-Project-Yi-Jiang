@@ -2,7 +2,7 @@ ROWS = 6
 COLS = 7
 EMPTY = "."
 
-def create_board():
+def create_board(): # creating a 2 dimensional connect 4 board
     board = []
     for i in range(ROWS):
         row = []
@@ -12,7 +12,7 @@ def create_board():
     return board
 
 
-def print_board(board):
+def print_board(board): # prints the board to the terminal
     print()
     for row in board:
         print(" ".join(row))
@@ -20,20 +20,20 @@ def print_board(board):
     print()
 
 
-def is_valid_column(board, col):
+def is_valid_column(board, col): # checks to make sure that the column that the player put the piece in is valid
     if col < 0 or col >= COLS:
         return False
     return board[0][col] == EMPTY
 
 
-def get_next_open_row(board, col):
+def get_next_open_row(board, col): #gets the next open row in the column the player chose
     for row in range(ROWS - 1, -1, -1):
         if board[row][col] == EMPTY:
             return row
     return None
 
 
-def drop_piece(board, row, col, piece):
+def drop_piece(board, row, col, piece): #drops the piece in the column the player chose 
     board[row][col] = piece
 
 
