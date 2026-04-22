@@ -1,5 +1,3 @@
-import random  # CHANGED: added for computer opponent
-
 ROWS = 6
 COLS = 7
 EMPTY = "."
@@ -15,12 +13,21 @@ def create_board():  # creating a 2 dimensional connect 4 board
     return board
 
 
-def print_board(board):  # prints the board to the terminal
-    # CHANGED: improved UI formatting
+def print_board(board):  # CHANGED: improved terminal UI
     print()
-    print("  1 2 3 4 5 6 7")
-    for row_num in range(ROWS):
-        print(str(row_num + 1) + " " + " ".join(board[row_num]))
+    print("    1   2   3   4   5   6   7")
+    print("  +---+---+---+---+---+---+---+")
+    for row in board:
+        print("  | " + " | ".join(row) + " |")
+        print("  +---+---+---+---+---+---+---+")
+    print()
+
+
+def print_banner(message):  # CHANGED: added UI helper for status messages
+    print()
+    print("=" * (len(message) + 8))
+    print("=== " + message + " ===")
+    print("=" * (len(message) + 8))
     print()
 
 
@@ -113,112 +120,34 @@ def get_player_input(board, player_piece):
         return col
 
 
-# CHANGED: added helper function for menu selection
-def choose_game_mode():
-    while True:
-        print("Choose a game mode:")
-        print("1. Player vs Player")
-        print("2. Player vs Computer")
-        choice = input("Enter 1 or 2: ")
-
-        if choice == "1":
-            return "pvp"
-        if choice == "2":
-            return "ai"
-
-        print("Invalid choice. Please enter 1 or 2.")
-
-
-# CHANGED: added simple AI extension
-def get_ai_move(board):
-    valid_columns = []
-    for col in range(COLS):
-        if is_valid_column(board, col):
-            valid_columns.append(col)
-
-    return random.choice(valid_columns)
-
-
-# CHANGED: added helper function to switch turns
-def switch_piece(current_piece):
-    if current_piece == "X":
-        return "O"
-    return "X"
-
-
-# CHANGED: added score display helper for better UI
-def print_score(score_x, score_o):
-    print()
-    print("Current Score")
-    print(f"Player X: {score_x}")
-    print(f"Player O: {score_o}")
-    print()
-
-
-# CHANGED: added replay prompt
-def play_again():
-    while True:
-        choice = input("Would you like to play again? (y/n): ").lower()
-        if choice == "y":
-            return True
-        if choice == "n":
-            return False
-        print("Please enter y or n.")
-
-
 def play_game():
-    # CHANGED: added mode selection and score tracking
-    mode = choose_game_mode()
-    score_x = 0
-    score_o = 0
+    board = create_board()
+    current_piece = "X"
 
-    print("Welcome to Connect 4!")
-    print("Get 4 pieces in a row horizontally, vertically, or diagonally.")
+    print_banner("WELCOME TO CONNECT 4")  # CHANGED
 
     while True:
-        board = create_board()
-        current_piece = "X"
+        print_board(board)
+        print("Current turn: Player", current_piece)  # CHANGED
 
-        while True:
-            print_score(score_x, score_o)  # CHANGED: improved UI
+        col = get_player_input(board, current_piece)
+        row = get_next_open_row(board, col)
+        drop_piece(board, row, col, current_piece)
+
+        if check_win(board, current_piece):
             print_board(board)
-
-            # CHANGED: support computer opponent
-            if mode == "ai" and current_piece == "O":
-                col = get_ai_move(board)
-                print(f"Computer chooses column {col + 1}")
-            else:
-                col = get_player_input(board, current_piece)
-
-            row = get_next_open_row(board, col)
-            drop_piece(board, row, col, current_piece)
-
-            if check_win(board, current_piece):
-                print_board(board)
-
-                if mode == "ai" and current_piece == "O":
-                    print("Computer wins!")
-                else:
-                    print(f"Player {current_piece} wins!")
-
-                if current_piece == "X":
-                    score_x += 1
-                else:
-                    score_o += 1
-                break
-
-            if board_full(board):
-                print_board(board)
-                print("It's a draw!")
-                break
-
-            current_piece = switch_piece(current_piece)
-
-        if not play_again():
-            print("Final scores:")
-            print_score(score_x, score_o)
-            print("Thanks for playing!")
+            print_banner(f"PLAYER {current_piece} WINS")  # CHANGED
             break
+
+        if board_full(board):
+            print_board(board)
+            print_banner("IT'S A DRAW")  # CHANGED
+            break
+
+        if current_piece == "X":
+            current_piece = "O"
+        else:
+            current_piece = "X"
 
 
 if __name__ == "__main__":
