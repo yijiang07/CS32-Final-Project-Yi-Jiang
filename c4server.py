@@ -1,14 +1,28 @@
-from socket import create_new_socket
+import socket
 from c4 import *
-from c4ui import Connect4UI  # CHANGED: added UI
+from c4ui import Connect4UI
 
-HOST = '127.0.0.1'
+HOST = "127.0.0.1"
 PORT = 65432
 
 
+def send_message(conn, message):
+    conn.sendall((message + "\n").encode())
+
+
+def receive_message(conn):
+    data = b""
+    while not data.endswith(b"\n"):
+        chunk = conn.recv(1024)
+        if not chunk:
+            return ""
+        data += chunk
+    return data.decode().strip()
+
+
 def main():
-    with create_new_socket() as s:
-        s.bind(HOST, PORT)
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((HOST, PORT))
         s.listen()
 
         print("Connect4 Server started. Waiting for Player O...")
@@ -19,7 +33,7 @@ def main():
             board = create_board()
             current_piece = "X"
 
-            ui = Connect4UI()  # CHANGED: create graphical UI
+            ui = Connect4UI()
             ui.draw_board(board)
             ui.show_message("Server / Player X")
 
@@ -32,35 +46,27 @@ def main():
                     col = get_player_input(board, "X")
                     row = get_next_open_row(board, col)
                     drop_piece(board, row, col, "X")
-
-                    conn.sendall(str(col))  # send move to client
-
+                    send_message(conn, str(col))
                 else:
                     ui.show_message("Waiting for Player O move")
                     print("Waiting for Player O move...")
-                    data = conn.recv()
+                    data = receive_message(conn)
 
-                    if data == '':
+                    if data == "":
                         break
 
                     col = int(data)
                     row = get_next_open_row(board, col)
                     drop_piece(board, row, col, "O")
 
-                ui.draw_board(board)  # CHANGED: update GUI after move
+                ui.draw_board(board)
 
                 if check_win(board, current_piece):
                     print_board(board)
                     ui.draw_board(board)
-
-                    if current_piece == "X":
-                        print("Player X wins!")
-                        ui.show_message("Player X wins!")
-                    else:
-                        print("Player O wins!")
-                        ui.show_message("Player O wins!")
-
-                    conn.sendall("GAME_OVER")
+                    print(f"Player {current_piece} wins!")
+                    ui.show_message(f"Player {current_piece} wins!")
+                    send_message(conn, "GAME_OVER")
                     input("Press Enter to close the server window...")
                     break
 
@@ -69,7 +75,7 @@ def main():
                     ui.draw_board(board)
                     print("It's a draw!")
                     ui.show_message("Draw!")
-                    conn.sendall("GAME_OVER")
+                    send_message(conn, "GAME_OVER")
                     input("Press Enter to close the server window...")
                     break
 
