@@ -19,56 +19,108 @@ def receive_message(conn):
     return data.decode().strip()
 
 
+# CHANGED: added helper to ask whether to play again
+def ask_play_again():
+    while True:
+        choice = input("Play again? (y/n): ").strip().lower()
+        if choice in ["y", "n"]:
+            return choice
+        print("Please enter y or n.")
+
+
+# CHANGED: added helper to print scores
+def print_scores(score_x, score_o):
+    print()
+    print("Current Score")
+    print(f"Player X: {score_x}")
+    print(f"Player O: {score_o}")
+    print()
+
+
 def main():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT))
         s.listen()
 
-        print_banner("CONNECT 4 SERVER STARTED")  # CHANGED
+        print_banner("CONNECT 4 SERVER STARTED")
         print("Waiting for Player O...")
         conn, addr = s.accept()
         print("Player O connected from", addr)
 
         with conn:
-            board = create_board()
-            current_piece = "X"
+            # CHANGED: score tracking across multiple games
+            score_x = 0
+            score_o = 0
 
-            while True:
-                print_board(board)
+            while True:  # CHANGED: outer loop for replay / multiple rounds
+                board = create_board()
+                current_piece = "X"
+                game_result = ""
 
-                if current_piece == "X":
-                    print("Your turn (Player X).")  # CHANGED
-                    col = get_player_input(board, "X")
-                    row = get_next_open_row(board, col)
-                    drop_piece(board, row, col, "X")
-                    send_message(conn, str(col))
-                else:
-                    print("Waiting for Player O move...")  # CHANGED
-                    data = receive_message(conn)
+                print_banner("NEW GAME")
+                print_scores(score_x, score_o)
+                send_message(conn, f"SCORES {score_x} {score_o}")
+                send_message(conn, "NEW_GAME")
 
-                    if data == "":
-                        print("Client disconnected.")
+                while True:
+                    print_scores(score_x, score_o)
+                    print_board(board)
+
+                    if current_piece == "X":
+                        print("Your turn (Player X).")
+                        col = get_player_input(board, "X")
+                        row = get_next_open_row(board, col)
+                        drop_piece(board, row, col, "X")
+                        send_message(conn, f"MOVE {col}")
+                    else:
+                        print("Waiting for Player O move...")
+                        data = receive_message(conn)
+
+                        if data == "":
+                            print("Client disconnected.")
+                            return
+
+                        if data.startswith("MOVE "):
+                            col = int(data.split()[1])
+                            row = get_next_open_row(board, col)
+                            drop_piece(board, row, col, "O")
+
+                    if check_win(board, current_piece):
+                        print_board(board)
+                        print_banner(f"PLAYER {current_piece} WINS")
+
+                        if current_piece == "X":
+                            score_x += 1
+                            game_result = "X"
+                        else:
+                            score_o += 1
+                            game_result = "O"
+
+                        send_message(conn, f"RESULT {game_result} {score_x} {score_o}")
                         break
 
-                    col = int(data)
-                    row = get_next_open_row(board, col)
-                    drop_piece(board, row, col, "O")
+                    if board_full(board):
+                        print_board(board)
+                        print_banner("IT'S A DRAW")
+                        game_result = "DRAW"
+                        send_message(conn, f"RESULT DRAW {score_x} {score_o}")
+                        break
 
-                if check_win(board, current_piece):
-                    print_board(board)
-                    print_banner(f"PLAYER {current_piece} WINS")  # CHANGED
-                    send_message(conn, "GAME_OVER")
+                    current_piece = "O" if current_piece == "X" else "X"
+
+                # CHANGED: ask server player if they want to play again
+                print_scores(score_x, score_o)
+                choice = ask_play_again()
+
+                if choice == "y":
+                    send_message(conn, "REPLAY y")
+                    continue
+                else:
+                    send_message(conn, "REPLAY n")
+                    print_banner("FINAL SCORES")
+                    print_scores(score_x, score_o)
+                    print("Game session ended.")
                     break
-
-                if board_full(board):
-                    print_board(board)
-                    print_banner("IT'S A DRAW")  # CHANGED
-                    send_message(conn, "GAME_OVER")
-                    break
-
-                current_piece = "O" if current_piece == "X" else "X"
-
-            print("Game over.")
 
 
 if __name__ == "__main__":
