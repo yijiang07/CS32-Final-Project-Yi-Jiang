@@ -1,4 +1,4 @@
-from socket32 import create_new_socket
+from socket import create_new_socket
 from c4 import *
 from c4ui import Connect4UI  # CHANGED: added UI
 
