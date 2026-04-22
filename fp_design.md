@@ -14,7 +14,7 @@ Data Structures:
 - Each position on the 2D list of lists represents a specific value:
     - "." = empty space
     - "X" = piece for Player X
-    - "0" = piece for Player 0
+    - "O" = piece for Player O
 
 Future addons:
 - Score Tracking System
