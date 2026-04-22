@@ -1,6 +1,6 @@
 from socket32 import create_new_socket
-from connect4 import *
-from connect4_ui import Connect4UI  # CHANGED: added UI
+from c4 import *
+from c4ui import Connect4UI  # CHANGED: added UI
 
 HOST = '127.0.0.1'
 PORT = 65432
