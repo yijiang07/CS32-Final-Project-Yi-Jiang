@@ -1,7 +1,7 @@
 ROWS = 6
 COLS = 7
 EMPTY = "."
-
+#this is pretty much all of the game logic that is imported into client and server
 
 def create_board():  # creating a 2 dimensional connect 4 board
     board = []

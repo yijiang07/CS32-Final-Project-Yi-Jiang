@@ -41,7 +41,7 @@ def main():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((HOST, PORT)) #binds the server to the client
         s.listen()
-
+#the rest of the code works in essence identical to the client code, but note that since the server is sending its message FIRST, which means we must account for this at some point to make sure that client and server terminals reflect the same info simultaneously.
         print_banner("CONNECT 4 SERVER STARTED")
         print("Waiting for Player O...")
         conn, addr = s.accept()
