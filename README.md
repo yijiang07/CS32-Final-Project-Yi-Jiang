@@ -12,7 +12,7 @@ Final Project for CS32
               computer difficulty that they want to play. Since Connect 4 is a solved
               game, this perfect move choice by the computer is possible. Furthermore,
               I think Connect 4 itself is a relatively intuitive game, and would be easy
-              for users to play. 
+              for users to play.
 
 - Build Status: In progress
 
@@ -35,7 +35,7 @@ Final Project for CS32
 
 - Tests: In progress
 
-- How to use: In progress
+- How to use: Requirements are Python 3.6 or higher. There are three existing modes of the game. Option 1 is 
 
 - Contribute: N/A
 
