@@ -39,7 +39,7 @@ def print_scores(score_x, score_o):
 
 def main():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((HOST, PORT))
+        s.bind((HOST, PORT)) #binds the server to the client
         s.listen()
 
         print_banner("CONNECT 4 SERVER STARTED")
