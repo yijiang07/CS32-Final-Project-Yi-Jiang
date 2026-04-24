@@ -35,7 +35,7 @@ Final Project for CS32
 
 - Tests: In progress
 
-- How to use: Requirements are Python 3.6 or higher. There are two existing modes of the game. Option 1 is a Local Two-Player game, which occurs in one terminal. Both players will share one keyboard. To play, simply run python3 c4.py. Players will then alternate entering a column number 1-7 when prompted. Option 2 is a Networked Two-Player game, which runs on two terminals. In this case, Player 1 (the player playing as X in Connect 4) will host. Player 2 (playing as O) will connect. By default, both sides will use 127.0.0.1:65432. Player 1 will start the server in Terminal 1 by running python3 c4server.py. Then, 
+- How to use: Requirements are Python 3.6 or higher. There are two existing modes of the game. Option 1 is a Local Two-Player game, which occurs in one terminal. Both players will share one keyboard. To play, simply run python3 c4.py. Players will then alternate entering a column number 1-7 when prompted. Option 2 is a Networked Two-Player game, which runs on two terminals. In this case, Player 1 (the player playing as X in Connect 4) will host. Player 2 (playing as O) will connect. By default, both sides will use 127.0.0.1:65432. Player 1 will start the server in Terminal 1 by running python3 c4server.py. Then, Player 2 will start the client in Terminal 2 by running python3 c4client.py. Once server and client are connected, the game will begin automatically. After each round, Player 1 will be prompted: Play again? (y/n). Scores will persist across rounds within a session. To play across two machines, edit the HOST variable at the top of c4client.py to Player 1's local IP Address.
 
 - Contribute: N/A
 
