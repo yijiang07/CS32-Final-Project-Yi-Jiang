@@ -73,7 +73,7 @@ def main():
                         print_board(board)
                         print_scores(score_x, score_o)
 
-                        if result == "DRAW": #result is part of the game logic 
+                        if result == "DRAW":
                             print_banner("IT'S A DRAW")
                         else:
                             print_banner(f"PLAYER {result} WINS")
@@ -83,7 +83,7 @@ def main():
                         # should not happen here, but safe to ignore
                         continue
 
-                else:
+                else: #this accounts for the case where no final game state is reached (no win, loss, draw)
                     print_scores(score_x, score_o)
                     print_board(board)
                     print("Your turn (Player O).")
