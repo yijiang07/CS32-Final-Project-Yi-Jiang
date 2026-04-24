@@ -37,13 +37,13 @@ def main():
         score_o = 0
 
         while True:  # CHANGED: outer loop for multiple rounds
-            board = create_board() #board is an object that we defined in c4.py 
+            board = create_board() #board is an object that we defined in c4.py
             current_piece = "X"
 
             while True:
                 if current_piece == "X":
                     print("Waiting for Player X move...")
-                    data = receive_message(s)
+                    data = receive_message(s) #we can use the message sent from server throughout the rest of the code logic after this line
 
                     if data == "":
                         print("Server disconnected.")
@@ -73,7 +73,7 @@ def main():
                         print_board(board)
                         print_scores(score_x, score_o)
 
-                        if result == "DRAW":
+                        if result == "DRAW": #result is part of the game logic 
                             print_banner("IT'S A DRAW")
                         else:
                             print_banner(f"PLAYER {result} WINS")
