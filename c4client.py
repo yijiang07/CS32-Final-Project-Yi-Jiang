@@ -5,11 +5,11 @@ HOST = "127.0.0.1"
 PORT = 65432
 
 
-def send_message(sock, message):
+def send_message(sock, message): #this section sets up the mechanism for the client to send results to the server
     sock.sendall((message + "\n").encode())
 
 
-def receive_message(sock):
+def receive_message(sock): #this section sets up the mechanism for the client to receive messages from the server
     data = b""
     while not data.endswith(b"\n"):
         chunk = sock.recv(1024)
@@ -20,7 +20,7 @@ def receive_message(sock):
 
 
 # CHANGED: added helper to print scores
-def print_scores(score_x, score_o):
+def print_scores(score_x, score_o): #this function leverages print mechanisms to 
     print()
     print("Current Score")
     print(f"Player X: {score_x}")
