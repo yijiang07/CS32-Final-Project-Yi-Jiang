@@ -20,7 +20,7 @@ def receive_message(sock): #this section sets up the mechanism for the client to
 
 
 # CHANGED: added helper to print scores
-def print_scores(score_x, score_o): #this function leverages print mechanisms to 
+def print_scores(score_x, score_o): #this function leverages print mechanisms to print out player scores
     print()
     print("Current Score")
     print(f"Player X: {score_x}")
@@ -29,15 +29,15 @@ def print_scores(score_x, score_o): #this function leverages print mechanisms to
 
 
 def main():
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s: #this statement connects client to server the same way we learned in an older pset
         s.connect((HOST, PORT))
         print_banner("CONNECTED TO CONNECT 4 SERVER AS PLAYER O")
 
-        score_x = 0
+        score_x = 0 #scores initialized at zero, will be incremented over time
         score_o = 0
 
         while True:  # CHANGED: outer loop for multiple rounds
-            board = create_board()
+            board = create_board() #board is an object that we defined in c4.py 
             current_piece = "X"
 
             while True:
