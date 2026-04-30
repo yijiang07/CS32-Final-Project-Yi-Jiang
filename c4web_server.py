@@ -249,4 +249,4 @@ if __name__ == "__main__":
     t = threading.Thread(target=tcp_server_thread, daemon=True)
     t.start()
     print(f"[WEB] Open http://localhost:{WEB_PORT} in your browser (Player X)")
-    app.run(host="127.0.0.1", port=WEB_PORT, debug=False, use_reloader=False)
+    app.run(host="0.0.0.0", port=WEB_PORT, debug=False, use_reloader=False)
