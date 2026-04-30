@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Connect 4 — Player {{ player }}</title>
+<style>
+  :root {
+    --board-blue: #1e5fbf;
+    --board-blue-dark: #144092;
+    --board-shadow: #0a2660;
+    --slot-empty: #eaf2ff;
+    --slot-shadow: #b9c8e0;
+    --coin-x: #e63946;
+    --coin-x-dark: #a31621;
+    --coin-o: #fcbf49;
+    --coin-o-dark: #c98a09;
+    --bg: #2b2b2b;
+    --panel: #3a3a3a;
+    --text: #f5f5f5;
+    --muted: #b0b0b0;
+    --accent: #4caf50;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+  h1 {
+    margin: 0 0 4px;
+    font-size: 28px;
+    letter-spacing: 1px;
+  }
+  .you-are {
+    color: var(--muted);
+    margin-bottom: 16px;
+    font-size: 14px;
+  }
+  .you-are b {
+    color: var(--text);
+  }
+  .scoreboard {
+    display: flex;
+    gap: 24px;
+    background: var(--panel);
+    padding: 12px 24px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 16px;
+  }
+  .score-x { color: var(--coin-x); }
+  .score-o { color: var(--coin-o); }
+  .status {
+    background: var(--panel);
+    padding: 10px 20px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    min-height: 24px;
+    font-size: 16px;
+    text-align: center;
+    min-width: 320px;
+  }
+  .status.your-turn { color: var(--accent); font-weight: bold; }
+  .status.win { color: var(--accent); font-weight: bold; font-size: 18px; }
+  .status.draw { color: var(--coin-o); font-weight: bold; font-size: 18px; }
+
+  .column-buttons {
+    display: grid;
+    grid-template-columns: repeat(7, 64px);
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .col-btn {
+    height: 36px;
+    background: var(--panel);
+    color: var(--text);
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .col-btn:hover:not(:disabled) {
+    background: var(--accent);
+    transform: translateY(-2px);
+  }
+  .col-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .board {
+    background: linear-gradient(180deg, var(--board-blue) 0%, var(--board-blue-dark) 100%);
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow:
+      0 8px 0 var(--board-shadow),
+      0 12px 24px rgba(0,0,0,0.5),
+      inset 0 2px 4px rgba(255,255,255,0.2);
+    display: grid;
+    grid-template-columns: repeat(7, 64px);
+    gap: 8px;
+  }
+  .cell {
+    width: 64px;
+    height: 64px;
+    background: var(--slot-empty);
+    border-radius: 50%;
+    box-shadow:
+      inset 0 4px 8px var(--slot-shadow),
+      inset 0 -2px 4px rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .coin {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    animation: drop 0.45s cubic-bezier(.5,1.6,.5,1);
+    box-shadow:
+      inset 0 -4px 8px rgba(0,0,0,0.3),
+      inset 0 4px 8px rgba(255,255,255,0.4),
+      0 2px 4px rgba(0,0,0,0.3);
+    position: relative;
+  }
+  .coin::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    border: 2px dashed rgba(0,0,0,0.15);
+  }
+  .coin.x {
+    background: radial-gradient(circle at 35% 30%, #ff6b78, var(--coin-x) 60%, var(--coin-x-dark));
+  }
+  .coin.o {
+    background: radial-gradient(circle at 35% 30%, #ffe08a, var(--coin-o) 60%, var(--coin-o-dark));
+  }
+  @keyframes drop {
+    0%   { transform: translateY(-450px); opacity: 0.5; }
+    70%  { transform: translateY(8px); }
+    85%  { transform: translateY(-4px); }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  .controls {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+  }
+  .btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .btn:hover { filter: brightness(1.1); }
+  .btn.secondary { background: #777; }
+
+  .footer {
+    margin-top: 24px;
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <h1>CONNECT 4</h1>
+  <div class="you-are">You are playing as <b id="you-label">Player {{ player }}</b></div>
+
+  <div class="scoreboard">
+    <div class="score-x">Player X: <span id="score-x">0</span></div>
+    <div class="score-o">Player O: <span id="score-o">0</span></div>
+  </div>
+
+  <div class="status" id="status">Connecting…</div>
+
+  <div class="column-buttons" id="col-buttons">
+    {% for c in range(7) %}
+      <button class="col-btn" data-col="{{ c }}" disabled>{{ c + 1 }}</button>
+    {% endfor %}
+  </div>
+
+  <div class="board" id="board">
+    {% for r in range(6) %}
+      {% for c in range(7) %}
+        <div class="cell" data-row="{{ r }}" data-col="{{ c }}"></div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  <div class="controls" id="controls" style="display:none;">
+    <button class="btn" id="play-again-btn">Play Again</button>
+    <button class="btn secondary" id="end-btn">End Session</button>
+  </div>
+
+  <div class="footer">
+    {% if player == "X" %}Hosting on this machine.{% else %}Connected to Player X's server.{% endif %}
+  </div>
+
+<script>
+  const PLAYER = "{{ player }}";
+  const boardEl = document.getElementById("board");
+  const statusEl = document.getElementById("status");
+  const colButtons = document.querySelectorAll(".col-btn");
+  const scoreXEl = document.getElementById("score-x");
+  const scoreOEl = document.getElementById("score-o");
+  const controlsEl = document.getElementById("controls");
+  const playAgainBtn = document.getElementById("play-again-btn");
+  const endBtn = document.getElementById("end-btn");
+
+  let pollTimer = null;
+  let lastBoardSig = "";
+
+  function renderBoard(board) {
+    const sig = JSON.stringify(board);
+    if (sig === lastBoardSig) return;
+    lastBoardSig = sig;
+    document.querySelectorAll(".cell").forEach(cell => {
+      const r = +cell.dataset.row;
+      const c = +cell.dataset.col;
+      const val = board[r][c];
+      const existing = cell.querySelector(".coin");
+      if (val === "." && existing) {
+        cell.removeChild(existing);
+      } else if (val !== "." && !existing) {
+        const coin = document.createElement("div");
+        coin.className = "coin " + (val === "X" ? "x" : "o");
+        cell.appendChild(coin);
+      } else if (val !== "." && existing) {
+        const want = val === "X" ? "x" : "o";
+        if (!existing.classList.contains(want)) {
+          existing.className = "coin " + want;
+        }
+      }
+    });
+  }
+
+  function setColumnsEnabled(enabled, board) {
+    colButtons.forEach(btn => {
+      const c = +btn.dataset.col;
+      const colFull = board && board[0][c] !== ".";
+      btn.disabled = !enabled || colFull;
+    });
+  }
+
+  async function fetchState() {
+    try {
+      const res = await fetch("/state");
+      const state = await res.json();
+      updateUI(state);
+    } catch (e) {
+      statusEl.textContent = "Connection lost. Is the other player still connected?";
+      statusEl.className = "status";
+    }
+  }
+
+  function updateUI(state) {
+    renderBoard(state.board);
+    scoreXEl.textContent = state.score_x;
+    scoreOEl.textContent = state.score_o;
+
+    if (state.phase === "waiting_for_opponent") {
+      statusEl.textContent = "Waiting for Player O to connect…";
+      statusEl.className = "status";
+      setColumnsEnabled(false, state.board);
+      controlsEl.style.display = "none";
+    } else if (state.phase === "your_turn") {
+      statusEl.textContent = "Your turn — click a column to drop your coin";
+      statusEl.className = "status your-turn";
+      setColumnsEnabled(true, state.board);
+      controlsEl.style.display = "none";
+    } else if (state.phase === "their_turn") {
+      const other = PLAYER === "X" ? "O" : "X";
+      statusEl.textContent = "Waiting for Player " + other + "…";
+      statusEl.className = "status";
+      setColumnsEnabled(false, state.board);
+      controlsEl.style.display = "none";
+    } else if (state.phase === "game_over") {
+      if (state.result === "DRAW") {
+        statusEl.textContent = "It's a draw!";
+        statusEl.className = "status draw";
+      } else {
+        statusEl.textContent = "Player " + state.result + " wins!";
+        statusEl.className = "status win";
+      }
+      setColumnsEnabled(false, state.board);
+      // Only the server (Player X) decides replay
+      if (PLAYER === "X") {
+        controlsEl.style.display = "flex";
+      } else {
+        controlsEl.style.display = "none";
+      }
+    } else if (state.phase === "session_ended") {
+      statusEl.textContent = "Game session ended. Final scores above.";
+      statusEl.className = "status";
+      setColumnsEnabled(false, state.board);
+      controlsEl.style.display = "none";
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    } else if (state.phase === "disconnected") {
+      statusEl.textContent = "Other player disconnected.";
+      statusEl.className = "status";
+      setColumnsEnabled(false, state.board);
+      controlsEl.style.display = "none";
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+  }
+
+  colButtons.forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const col = +btn.dataset.col;
+      setColumnsEnabled(false, null);
+      try {
+        await fetch("/move", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({col})
+        });
+      } catch (e) { /* ignore, poll will recover */ }
+      fetchState();
+    });
+  });
+
+  playAgainBtn.addEventListener("click", async () => {
+    await fetch("/replay", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({choice: "y"})
+    });
+    fetchState();
+  });
+  endBtn.addEventListener("click", async () => {
+    await fetch("/replay", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({choice: "n"})
+    });
+    fetchState();
+  });
+
+  fetchState();
+  pollTimer = setInterval(fetchState, 600);
+</script>
+</body>
+</html>
