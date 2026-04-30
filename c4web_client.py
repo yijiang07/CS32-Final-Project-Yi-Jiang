@@ -1,14 +1,14 @@
 """
-c4web_client.py — Flask web UI for Player O.
+c4web_client.py: This is just out Flask web UI for Player O.
 
-This file does NOT modify any game logic. It imports functions from c4.py
+This file doesn't modify any game logic. It imports functions from c4.py
 and uses the same TCP protocol as c4client.py:
    SCORES <x> <o>, NEW_GAME, MOVE <col>, RESULT <X|O|DRAW> <x> <o>, REPLAY <y|n>
 
-Run this on Player O's machine, then open http://localhost:5001 in a browser.
-Player X must already be running c4web_server.py.
+The way this works is you just run this on Player O's machine, then open http://localhost:5001 in a browser.
+However, player X must already be running c4web_server.py.
 
-If Player X is on a different machine, change SERVER_HOST below to their IP.
+Note that if Player X is on a different machine, change SERVER_HOST below to their IP. It's easiest just to start running this from split terminals and then open two tabs on your browser
 """
 import socket
 import threading
@@ -21,12 +21,12 @@ from c4 import (
     is_valid_column,
 )
 
-# ----- Network config -----
-SERVER_HOST = "127.0.0.1"   # <-- change to Player X's IP if on a different machine
+
+SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 65432
 WEB_PORT = 5001
 
-# ----- Shared state -----
+
 state_lock = threading.Lock()
 state = {
     "board": create_board(),
@@ -42,7 +42,7 @@ pending_move_lock = threading.Lock()
 move_event = threading.Event()
 
 
-# --- TCP message helpers (identical wire format to c4client.py) ---
+# these are TCP message helpers (just the identical wire format to c4client.py)
 def send_message(sock, message):
     sock.sendall((message + "\n").encode())
 
@@ -72,7 +72,7 @@ def wait_for_web_move():
 
 
 def client_loop(sock):
-    """Mirrors c4client.py's main loop: handles SCORES / NEW_GAME / MOVE /
+    """ all this loop does is mirror c4client.py's main loop. it handles SCORES / NEW_GAME / MOVE /
     RESULT / REPLAY messages from the server, and sends MOVE messages from
     the web UI."""
     while True:
@@ -169,7 +169,7 @@ def client_loop(sock):
             with state_lock:
                 state["current_piece"] = "O" if current_piece == "X" else "X"
 
-        # --- replay decision comes from server ---
+        # the decision to replay comes from the server file, which is a design decision we just had to accept for the sake of not making things too complicated
         replay_msg = receive_message(sock)
         if replay_msg == "":
             with state_lock:
@@ -205,7 +205,7 @@ def tcp_client_thread():
             state["phase"] = "disconnected"
 
 
-# ----- Flask app -----
+
 app = Flask(__name__)
 
 
@@ -245,7 +245,7 @@ def post_move():
 
 @app.route("/replay", methods=["POST"])
 def post_replay():
-    # Player O does not control replay; ignore politely.
+    # Player O does not control replay, bummer for player O but again this was a design decision we chose to make. 
     return jsonify({"ok": True})
 
 

@@ -1,7 +1,7 @@
 """
-c4web_server.py — Flask web UI for Player X.
+c4web_server.py: This is the flask web UI for Player X.
 
-This file does NOT modify any game logic. It imports functions from c4.py
+This file doesn't modify any game logic. It imports functions from c4.py
 (create_board, get_next_open_row, drop_piece, check_win, board_full,
 is_valid_column) and uses the same TCP protocol as c4server.py:
    SCORES <x> <o>, NEW_GAME, MOVE <col>, RESULT <X|O|DRAW> <x> <o>, REPLAY <y|n>
