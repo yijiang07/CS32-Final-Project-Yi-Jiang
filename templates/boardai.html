@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Connect 4 — Impossible Mode</title>
+<style>
+  :root {
+    --board-blue: #1e5fbf;
+    --board-blue-dark: #144092;
+    --board-shadow: #0a2660;
+    --slot-empty: #eaf2ff;
+    --slot-shadow: #b9c8e0;
+    --coin-x: #e63946;
+    --coin-x-dark: #a31621;
+    --coin-o: #fcbf49;
+    --coin-o-dark: #c98a09;
+    --bg: #1a1a2e;
+    --panel: #16213e;
+    --panel2: #0f3460;
+    --text: #f5f5f5;
+    --muted: #a0a0b0;
+    --accent: #e94560;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  /* ── Start screen overlay ── */
+  #start-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    gap: 16px;
+    padding: 32px;
+  }
+  #start-screen h1 { font-size: 36px; margin: 0; letter-spacing: 2px; }
+  #start-screen .subtitle {
+    color: var(--accent);
+    font-size: 13px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin: 0 0 16px;
+  }
+  .mode-card {
+    background: var(--panel);
+    border: 2px solid var(--panel2);
+    border-radius: 12px;
+    padding: 24px 32px;
+    width: 100%;
+    max-width: 360px;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+    text-align: center;
+  }
+  .mode-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .mode-card h2 { margin: 0 0 8px; font-size: 20px; }
+  .mode-card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .mode-card.impossible h2 { color: var(--accent); }
+  .mode-card .tag {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  /* ── Game UI ── */
+  #game-ui { display: none; flex-direction: column; align-items: center; }
+
+  h1.game-title { margin: 0 0 4px; font-size: 28px; letter-spacing: 1px; }
+  .you-are { color: var(--muted); margin-bottom: 16px; font-size: 14px; }
+  .you-are b { color: var(--text); }
+
+  .scoreboard {
+    display: flex;
+    gap: 24px;
+    background: var(--panel);
+    padding: 12px 24px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 16px;
+  }
+  .score-x { color: var(--coin-x); }
+  .score-o { color: var(--coin-o); }
+
+  .status {
+    background: var(--panel);
+    padding: 10px 20px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 16px;
+    text-align: center;
+    min-width: 340px;
+  }
+  .status.your-turn  { color: #4caf50; font-weight: bold; }
+  .status.ai-turn    { color: var(--accent); font-style: italic; }
+  .status.win        { color: #4caf50; font-weight: bold; font-size: 18px; }
+  .status.lose       { color: var(--accent); font-weight: bold; font-size: 18px; }
+  .status.draw       { color: var(--coin-o); font-weight: bold; font-size: 18px; }
+
+  .column-buttons {
+    display: grid;
+    grid-template-columns: repeat(7, 64px);
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .col-btn {
+    height: 36px;
+    background: var(--panel);
+    color: var(--text);
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+  .col-btn:hover:not(:disabled) { background: #4caf50; transform: translateY(-2px); }
+  .col-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .board {
+    background: linear-gradient(180deg, var(--board-blue) 0%, var(--board-blue-dark) 100%);
+    padding: 12px;
+    border-radius: 12px;
+    box-shadow:
+      0 8px 0 var(--board-shadow),
+      0 12px 24px rgba(0,0,0,0.5),
+      inset 0 2px 4px rgba(255,255,255,0.2);
+    display: grid;
+    grid-template-columns: repeat(7, 64px);
+    gap: 8px;
+  }
+  .cell {
+    width: 64px; height: 64px;
+    background: var(--slot-empty);
+    border-radius: 50%;
+    box-shadow: inset 0 4px 8px var(--slot-shadow), inset 0 -2px 4px rgba(255,255,255,0.6);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .coin {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    animation: drop 0.45s cubic-bezier(.5,1.6,.5,1);
+    box-shadow: inset 0 -4px 8px rgba(0,0,0,0.3), inset 0 4px 8px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.3);
+    position: relative;
+  }
+  .coin::after {
+    content: ""; position: absolute; inset: 6px;
+    border-radius: 50%; border: 2px dashed rgba(0,0,0,0.15);
+  }
+  .coin.x { background: radial-gradient(circle at 35% 30%, #ff6b78, var(--coin-x) 60%, var(--coin-x-dark)); }
+  .coin.o { background: radial-gradient(circle at 35% 30%, #ffe08a, var(--coin-o) 60%, var(--coin-o-dark)); }
+  @keyframes drop {
+    0%   { transform: translateY(-450px); opacity: 0.5; }
+    70%  { transform: translateY(8px); }
+    85%  { transform: translateY(-4px); }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+
+  .controls { margin-top: 20px; display: flex; gap: 12px; }
+  .btn { background: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-size: 15px; font-weight: bold; cursor: pointer; }
+  .btn:hover { filter: brightness(1.1); }
+  .btn.secondary { background: #777; }
+  .btn.danger { background: var(--accent); }
+
+  .thinking-dots span {
+    animation: blink 1.2s infinite;
+    display: inline-block;
+  }
+  .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100% { opacity: 0; } 40% { opacity: 1; } }
+
+  .footer { margin-top: 24px; color: var(--muted); font-size: 12px; text-align: center; }
+</style>
+</head>
+<body>
+
+<!-- ── Start screen ── -->
+<div id="start-screen">
+  <h1>CONNECT 4</h1>
+  <p class="subtitle">Choose your mode</p>
+
+  <div class="mode-card" onclick="startMode('standard')">
+    <h2>Standard Game</h2>
+    <p>Two players take turns on the same machine. Classic hot-seat play.</p>
+  </div>
+
+  <div class="mode-card impossible" onclick="startMode('impossible')">
+    <div class="tag">⚠ Impossible</div>
+    <h2>Impossible Mode</h2>
+    <p>Face a perfect AI opponent powered by minimax with alpha-beta pruning. The AI plays as X and will win with perfect play — good luck.</p>
+  </div>
+</div>
+
+<!-- ── Game UI (hidden until mode is chosen) ── -->
+<div id="game-ui">
+  <h1 class="game-title">CONNECT 4</h1>
+  <div class="you-are" id="you-are-label"></div>
+
+  <div class="scoreboard">
+    <div class="score-x">Player X: <span id="score-x">0</span></div>
+    <div class="score-o">Player O: <span id="score-o">0</span></div>
+  </div>
+
+  <div class="status" id="status">Loading…</div>
+
+  <div class="column-buttons" id="col-buttons">
+    <button class="col-btn" data-col="0" disabled>1</button>
+    <button class="col-btn" data-col="1" disabled>2</button>
+    <button class="col-btn" data-col="2" disabled>3</button>
+    <button class="col-btn" data-col="3" disabled>4</button>
+    <button class="col-btn" data-col="4" disabled>5</button>
+    <button class="col-btn" data-col="5" disabled>6</button>
+    <button class="col-btn" data-col="6" disabled>7</button>
+  </div>
+
+  <div class="board" id="board">
+    <!-- 6 rows × 7 cols = 42 cells -->
+    <div class="cell" data-row="0" data-col="0"></div><div class="cell" data-row="0" data-col="1"></div><div class="cell" data-row="0" data-col="2"></div><div class="cell" data-row="0" data-col="3"></div><div class="cell" data-row="0" data-col="4"></div><div class="cell" data-row="0" data-col="5"></div><div class="cell" data-row="0" data-col="6"></div>
+    <div class="cell" data-row="1" data-col="0"></div><div class="cell" data-row="1" data-col="1"></div><div class="cell" data-row="1" data-col="2"></div><div class="cell" data-row="1" data-col="3"></div><div class="cell" data-row="1" data-col="4"></div><div class="cell" data-row="1" data-col="5"></div><div class="cell" data-row="1" data-col="6"></div>
+    <div class="cell" data-row="2" data-col="0"></div><div class="cell" data-row="2" data-col="1"></div><div class="cell" data-row="2" data-col="2"></div><div class="cell" data-row="2" data-col="3"></div><div class="cell" data-row="2" data-col="4"></div><div class="cell" data-row="2" data-col="5"></div><div class="cell" data-row="2" data-col="6"></div>
+    <div class="cell" data-row="3" data-col="0"></div><div class="cell" data-row="3" data-col="1"></div><div class="cell" data-row="3" data-col="2"></div><div class="cell" data-row="3" data-col="3"></div><div class="cell" data-row="3" data-col="4"></div><div class="cell" data-row="3" data-col="5"></div><div class="cell" data-row="3" data-col="6"></div>
+    <div class="cell" data-row="4" data-col="0"></div><div class="cell" data-row="4" data-col="1"></div><div class="cell" data-row="4" data-col="2"></div><div class="cell" data-row="4" data-col="3"></div><div class="cell" data-row="4" data-col="4"></div><div class="cell" data-row="4" data-col="5"></div><div class="cell" data-row="4" data-col="6"></div>
+    <div class="cell" data-row="5" data-col="0"></div><div class="cell" data-row="5" data-col="1"></div><div class="cell" data-row="5" data-col="2"></div><div class="cell" data-row="5" data-col="3"></div><div class="cell" data-row="5" data-col="4"></div><div class="cell" data-row="5" data-col="5"></div><div class="cell" data-row="5" data-col="6"></div>
+  </div>
+
+  <div class="controls" id="controls" style="display:none;">
+    <button class="btn" id="play-again-btn">Play Again</button>
+    <button class="btn secondary" id="end-btn">End Session</button>
+  </div>
+
+  <div class="footer" id="footer-label"></div>
+</div>
+
+<script>
+  let currentMode = null;
+  let pollTimer = null;
+  let lastBoardSig = "";
+  let lastGameId = null;
+
+  const startScreen = document.getElementById("start-screen");
+  const gameUI     = document.getElementById("game-ui");
+  const boardEl    = document.getElementById("board");
+  const statusEl   = document.getElementById("status");
+  const colButtons = document.querySelectorAll(".col-btn");
+  const scoreXEl   = document.getElementById("score-x");
+  const scoreOEl   = document.getElementById("score-o");
+  const controlsEl = document.getElementById("controls");
+  const youAreEl   = document.getElementById("you-are-label");
+  const footerEl   = document.getElementById("footer-label");
+
+  function startMode(mode) {
+    currentMode = mode;
+    startScreen.style.display = "none";
+    gameUI.style.display = "flex";
+
+    if (mode === "impossible") {
+      youAreEl.innerHTML = 'You are <b>Player O</b> — the AI is <b style="color:#e63946">Player X</b>';
+      footerEl.textContent = "Impossible Mode — Minimax AI with Alpha-Beta Pruning";
+      // Point to the AI server on port 5002
+      window._apiBase = window.location.origin.replace(/:\d+$/, ":5002");
+    } else {
+      youAreEl.innerHTML = 'Playing as <b>Player X</b> — hot-seat, two players';
+      footerEl.textContent = "Standard Mode — Two Players";
+      window._apiBase = window.location.origin;
+    }
+
+    fetchState();
+    pollTimer = setInterval(fetchState, 600);
+  }
+
+  function apiBase() {
+    return window._apiBase || window.location.origin;
+  }
+
+  function renderBoard(board, gameId) {
+    // If this is a new game, wipe the board visually right away
+    if (gameId !== undefined && gameId !== lastGameId) {
+      lastGameId = gameId;
+      lastBoardSig = "";
+      document.querySelectorAll(".coin").forEach(c => c.remove());
+    }
+    const sig = JSON.stringify(board);
+    if (sig === lastBoardSig) return;
+    lastBoardSig = sig;
+    document.querySelectorAll(".cell").forEach(cell => {
+      const r = +cell.dataset.row, c = +cell.dataset.col;
+      const val = board[r][c];
+      const existing = cell.querySelector(".coin");
+      if (val === "." && existing) cell.removeChild(existing);
+      else if (val !== "." && !existing) {
+        const coin = document.createElement("div");
+        coin.className = "coin " + (val === "X" ? "x" : "o");
+        cell.appendChild(coin);
+      } else if (val !== "." && existing) {
+        const want = val === "X" ? "x" : "o";
+        if (!existing.classList.contains(want)) existing.className = "coin " + want;
+      }
+    });
+  }
+
+  function setColumnsEnabled(enabled, board) {
+    colButtons.forEach(btn => {
+      const c = +btn.dataset.col;
+      const full = board && board[0][c] !== ".";
+      btn.disabled = !enabled || full;
+    });
+  }
+
+  async function fetchState() {
+    try {
+      const res = await fetch(apiBase() + "/state");
+      const s = await res.json();
+      updateUI(s);
+    } catch (e) {
+      statusEl.textContent = "Connection lost.";
+      statusEl.className = "status";
+    }
+  }
+
+  function updateUI(s) {
+    renderBoard(s.board, s.game_id);
+    scoreXEl.textContent = s.score_x;
+    scoreOEl.textContent = s.score_o;
+    controlsEl.style.display = "none";
+
+    if (currentMode === "impossible") {
+      updateImpossibleUI(s);
+    } else {
+      updateStandardUI(s);
+    }
+  }
+
+  function updateImpossibleUI(s) {
+    if (s.phase === "ai_thinking") {
+      statusEl.innerHTML = 'AI is thinking<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>';
+      statusEl.className = "status ai-turn";
+      setColumnsEnabled(false, s.board);
+    } else if (s.phase === "your_turn") {
+      statusEl.textContent = "Your turn — drop a coin (Player O)";
+      statusEl.className = "status your-turn";
+      setColumnsEnabled(true, s.board);
+    } else if (s.phase === "game_over") {
+      if (s.result === "DRAW") {
+        statusEl.textContent = "It's a draw! Impressive.";
+        statusEl.className = "status draw";
+      } else if (s.result === "O") {
+        statusEl.textContent = "🎉 You beat the impossible AI!";
+        statusEl.className = "status win";
+      } else {
+        statusEl.textContent = "AI wins. Better luck next time.";
+        statusEl.className = "status lose";
+      }
+      setColumnsEnabled(false, s.board);
+      controlsEl.style.display = "flex";
+    } else if (s.phase === "session_ended") {
+      statusEl.textContent = "Session ended. Final scores above.";
+      statusEl.className = "status";
+      setColumnsEnabled(false, s.board);
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+  }
+
+  function updateStandardUI(s) {
+    if (s.phase === "waiting_for_opponent") {
+      statusEl.textContent = "Waiting for Player O to connect…";
+      statusEl.className = "status";
+      setColumnsEnabled(false, s.board);
+    } else if (s.phase === "your_turn") {
+      statusEl.textContent = "Your turn — click a column to drop your coin";
+      statusEl.className = "status your-turn";
+      setColumnsEnabled(true, s.board);
+    } else if (s.phase === "their_turn") {
+      statusEl.textContent = "Waiting for the other player…";
+      statusEl.className = "status";
+      setColumnsEnabled(false, s.board);
+    } else if (s.phase === "game_over") {
+      if (s.result === "DRAW") {
+        statusEl.textContent = "It's a draw!";
+        statusEl.className = "status draw";
+      } else {
+        statusEl.textContent = `Player ${s.result} wins!`;
+        statusEl.className = "status win";
+      }
+      setColumnsEnabled(false, s.board);
+      controlsEl.style.display = "flex";
+    } else if (s.phase === "session_ended" || s.phase === "disconnected") {
+      statusEl.textContent = "Session ended.";
+      statusEl.className = "status";
+      setColumnsEnabled(false, s.board);
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+  }
+
+  colButtons.forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const col = +btn.dataset.col;
+      setColumnsEnabled(false, null);
+      await fetch(apiBase() + "/move", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({col})
+      });
+      fetchState();
+    });
+  });
+
+  document.getElementById("play-again-btn").addEventListener("click", async () => {
+    await fetch(apiBase() + "/replay", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({choice: "y"})
+    });
+    lastBoardSig = "";
+    lastGameId = null;
+    fetchState();
+  });
+
+  document.getElementById("end-btn").addEventListener("click", async () => {
+    await fetch(apiBase() + "/replay", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({choice: "n"})
+    });
+    fetchState();
+  });
+</script>
+</body>
+</html>
