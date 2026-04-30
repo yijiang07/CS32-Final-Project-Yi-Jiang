@@ -165,7 +165,6 @@ The AI moves first automatically. While it is computing, you will see a pulsing 
 - The AI responds immediately after your move.
 - After a game ends, Play Again resets the board and starts a new round with scores preserved. End Session closes out the game.
 
----
 
 One Final Note:
 
@@ -173,7 +172,7 @@ All modes require `c4.py` in the same directory. The browser AI mode additionall
 
 
 
-- Contribute: We used Claude for assistance with portions of this project. We wrote prompts to help write the html files for the board, instructing it to use the Flask library to design a board and coins according to our specifications and the rules of Connect 4. We also leveraged Claude to write a Minimax Algorithm with Alpha-Beta Pruning, which we knew was the algorithm developed in 1988 by James Dow Allen and Victor Allis to solve the game for the player going first. We also leveraged Claude when we recognized we were uncertain as to the language we should use to connect our networked game logic to a locally hosted website, which assisted with some parts of c4web_client.py and c4web_server.py
+- Contribute: We used Claude for assistance with portions of this project. We wrote prompts to help write the html files for the board, instructing it to use the Flask library to design a board and coins according to our specifications and the rules of Connect 4. We also leveraged Claude to write a Minimax Algorithm with Alpha-Beta Pruning, which we knew was the algorithm developed in 1988 by James Dow Allen and Victor Allis to solve the game for the player going first. We also leveraged Claude when we recognized we were uncertain as to the language we should use to connect our networked game logic to a locally hosted website, which assisted with some parts of c4web_client.py and c4web_server.py. We also used Claude to help debug network synchronization. Essentially, we had an issue with the server file in the networked game sending all messages to the client, and the client relying on this information being sent to update the board. What this meant was that if the server player (Player X) won first, the game would end immediately on the server, clear the board, but exit out of the game loop before the client file could be notified the game was over. We fixed this synchronization issue by recognizing that we had to make sure the client file read a few moves ahead and that there was enough of a lag between the two game files such that the client file wouldn't be timed out of the game before it could read a move tht told it the game was over. Claude also assisted with organizing our thoughts to write as thorough instructions as possible for the How to Use section.
 
 - Credits: N/A
 
