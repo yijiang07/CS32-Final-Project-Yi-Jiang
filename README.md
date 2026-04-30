@@ -64,7 +64,7 @@ Players alternate entering a column number (1–7) when prompted. The game detec
 
 ---
 
-### Mode 2: Terminal — Networked Two-Player
+### Mode 2: Terminal — Networked Two-Player (This is also a primitive version and isn't the final version of our project)
 
 Two players connect over a network, each using their own terminal. The two terminals communicate over a TCP socket connection.
 
@@ -86,13 +86,13 @@ python3 c4client.py
 
 Once connected, the game begins automatically. Players type a column number (1–7) on their respective terminals. After each game, Player X is prompted `Play again? (y/n)` — scores persist across rounds within the session.
 
-> **If Player O is on a different machine**, open `c4client.py` and change the `HOST` variable at the top from `"127.0.0.1"` to Player X's local IP address. Player X's IP can be found by running `ipconfig` (Windows) or `ifconfig` / `ip addr` (Mac/Linux).
+> If Player O is on a different machine, open `c4client.py` and change the `HOST` variable at the top from `"127.0.0.1"` to Player X's local IP address. Player X's IP can be found by running `ipconfig` (Windows) or `ifconfig` / `ip addr` (Mac/Linux).
 
 ---
 
-### Mode 3: Browser — Networked Two-Player
+### Mode 3: Browser — Networked Two-Player (This mode is a part of our final submission)
 
-The same two-player networked game, but each player uses a browser instead of a terminal. Each player runs their own Flask app which hosts a visual game board with a real Connect 4 look — blue board, red and yellow coins, drop animations.
+The same two-player networked game, but each player uses a browser with enhanced UI instead of a terminal. Each player runs their own Flask app which hosts a visual game board with a real Connect 4 look — blue board, red and yellow coins, drop animations.
 
 **Files needed:** `c4.py`, `c4web_server.py`, `c4web_client.py`, `templates/board.html`
 
@@ -103,6 +103,11 @@ python3 c4web_server.py
 ```
 
 You will see:
+
+[TCP] Listening on 0.0.0.0:65432 for Player O...
+[WEB] Open http://localhost:5000 in your browser (Player X)
+
+Running on http://0.0.0.0:5000
 
 - Contribute: N/A
 
