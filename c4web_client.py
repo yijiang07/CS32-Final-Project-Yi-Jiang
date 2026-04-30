@@ -1,15 +1,12 @@
 """
-c4web_client.py: This is just out Flask web UI for Player O.
+c4web_client.py — Flask web UI for Player O.
 
-This file doesn't modify any game logic. It imports functions from c4.py
-and uses the same TCP protocol as c4client.py:
-   SCORES <x> <o>, NEW_GAME, MOVE <col>, RESULT <X|O|DRAW> <x> <o>, REPLAY <y|n>
+Does NOT modify any game logic. Imports from c4.py, uses the same TCP
+protocol as c4client.py.
 
-The way this works is you just run this on Player O's machine, then open http://localhost:5001 in a browser.
-However, player X must already be running c4web_server.py.
-
-Note that if Player X is on a different machine, change SERVER_HOST below to their IP. It's easiest just to start running this from split terminals and then open two tabs on your browser
+If Player X is on a different machine, change SERVER_HOST to their IP.
 """
+import select
 import socket
 import threading
 from flask import Flask, render_template, jsonify, request
@@ -21,11 +18,9 @@ from c4 import (
     is_valid_column,
 )
 
-
 SERVER_HOST = "127.0.0.1"
 SERVER_PORT = 65432
 WEB_PORT = 5001
-
 
 state_lock = threading.Lock()
 state = {
@@ -42,7 +37,6 @@ pending_move_lock = threading.Lock()
 move_event = threading.Event()
 
 
-# these are TCP message helpers (just the identical wire format to c4client.py)
 def send_message(sock, message):
     sock.sendall((message + "\n").encode())
 
@@ -55,6 +49,12 @@ def receive_message(sock):
             return ""
         data += chunk
     return data.decode().strip()
+
+
+def data_available(sock, timeout=2.0):
+    """Return True if the socket has data ready to read within `timeout` seconds."""
+    ready, _, _ = select.select([sock], [], [], timeout)
+    return bool(ready)
 
 
 def wait_for_web_move():
@@ -71,16 +71,30 @@ def wait_for_web_move():
                 return col
 
 
+def apply_result(parts):
+    with state_lock:
+        state["score_x"] = int(parts[2])
+        state["score_o"] = int(parts[3])
+        state["result"] = parts[1]
+        state["phase"] = "game_over"
+
+
 def client_loop(sock):
-    """ all this loop does is mirror c4client.py's main loop. it handles SCORES / NEW_GAME / MOVE /
-    RESULT / REPLAY messages from the server, and sends MOVE messages from
-    the web UI."""
+    """
+    Fix summary:
+    - NEW_GAME now explicitly resets the board so O's screen clears cleanly.
+    - After applying X's MOVE, we use select() to check whether the server
+      immediately sent a RESULT (win/draw). select() returns in microseconds
+      when data is already in the buffer, and waits up to 2 s otherwise —
+      long enough to be reliable on any network, fast enough to feel instant.
+      No futile move from O is ever required.
+    """
     while True:
         with state_lock:
             state["board"] = create_board()
             state["current_piece"] = "X"
             state["result"] = ""
-            state["phase"] = "their_turn"  # X always starts
+            state["phase"] = "their_turn"
 
         while True:
             with state_lock:
@@ -89,6 +103,7 @@ def client_loop(sock):
             if current_piece == "X":
                 with state_lock:
                     state["phase"] = "their_turn"
+
                 data = receive_message(sock)
                 if data == "":
                     with state_lock:
@@ -103,6 +118,12 @@ def client_loop(sock):
                     continue
 
                 if data == "NEW_GAME":
+                    # Explicitly clear the board so O's screen resets
+                    with state_lock:
+                        state["board"] = create_board()
+                        state["result"] = ""
+                        state["current_piece"] = "X"
+                        state["phase"] = "their_turn"
                     continue
 
                 if data.startswith("MOVE "):
@@ -111,52 +132,35 @@ def client_loop(sock):
                         row = get_next_open_row(state["board"], col)
                         drop_piece(state["board"], row, col, "X")
 
-                    # UX improvement: peek for an immediate RESULT so O sees
-                    # the win/draw banner without having to make a futile move.
-                    # Game logic is untouched — we just read one more message
-                    # if the server sent one.
-                    sock.settimeout(0.4)
-                    try:
-                        peek = receive_message(sock)
-                    except socket.timeout:
-                        peek = None
-                    finally:
-                        sock.settimeout(None)
-
-                    if peek and peek.startswith("RESULT "):
-                        parts = peek.split()
-                        result = parts[1]
-                        with state_lock:
-                            state["score_x"] = int(parts[2])
-                            state["score_o"] = int(parts[3])
-                            state["result"] = result
-                            state["phase"] = "game_over"
-                        break
-                    elif peek == "":
-                        with state_lock:
-                            state["phase"] = "disconnected"
-                        return
-                    elif peek is not None:
-                        # Unexpected message — handle defensively by re-queueing logic
-                        # (shouldn't happen with current protocol, but stay safe)
-                        if peek.startswith("SCORES "):
-                            parts = peek.split()
+                    # Use select() to check if RESULT is already in the buffer.
+                    # If X's move was a winner the server sends RESULT immediately,
+                    # so select() returns True right away. If not, we time out
+                    # after 2 s and let O take their turn normally.
+                    if data_available(sock, timeout=2.0):
+                        next_msg = receive_message(sock)
+                        if next_msg == "":
+                            with state_lock:
+                                state["phase"] = "disconnected"
+                            return
+                        if next_msg.startswith("RESULT "):
+                            apply_result(next_msg.split())
+                            break
+                        # Unexpected message — handle it gracefully
+                        if next_msg.startswith("SCORES "):
+                            parts = next_msg.split()
                             with state_lock:
                                 state["score_x"] = int(parts[1])
                                 state["score_o"] = int(parts[2])
+                    # Either no data within 2 s, or a non-RESULT message —
+                    # fall through and let O take their turn.
 
                 elif data.startswith("RESULT "):
-                    parts = data.split()
-                    result = parts[1]
-                    with state_lock:
-                        state["score_x"] = int(parts[2])
-                        state["score_o"] = int(parts[3])
-                        state["result"] = result
-                        state["phase"] = "game_over"
+                    apply_result(data.split())
                     break
 
                 elif data.startswith("REPLAY "):
                     continue
+
             else:
                 with state_lock:
                     state["phase"] = "your_turn"
@@ -169,7 +173,7 @@ def client_loop(sock):
             with state_lock:
                 state["current_piece"] = "O" if current_piece == "X" else "X"
 
-        # the decision to replay comes from the server file, which is a design decision we just had to accept for the sake of not making things too complicated
+        # Replay decision from server
         replay_msg = receive_message(sock)
         if replay_msg == "":
             with state_lock:
@@ -195,15 +199,13 @@ def tcp_client_thread():
         with sock:
             client_loop(sock)
     except ConnectionRefusedError:
-        print(f"[TCP] Could not connect to {SERVER_HOST}:{SERVER_PORT}. "
-              f"Is Player X running c4web_server.py?")
+        print(f"[TCP] Could not connect to {SERVER_HOST}:{SERVER_PORT}.")
         with state_lock:
             state["phase"] = "disconnected"
     except Exception as e:
         print(f"[TCP] Error: {e}")
         with state_lock:
             state["phase"] = "disconnected"
-
 
 
 app = Flask(__name__)
@@ -245,7 +247,6 @@ def post_move():
 
 @app.route("/replay", methods=["POST"])
 def post_replay():
-    # Player O does not control replay, bummer for player O but again this was a design decision we chose to make. 
     return jsonify({"ok": True})
 
 
