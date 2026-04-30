@@ -173,7 +173,7 @@ All modes require `c4.py` in the same directory. The browser AI mode additionall
 
 
 
-- Contribute: N/A
+- Contribute: We used Claude for assistance with portions of this project. We wrote prompts to help write the html files for the board, instructing it to use the Flask library to design a board and coins according to our specifications and the rules of Connect 4. We also leveraged Claude to write a Minimax Algorithm with Alpha-Beta Pruning, which we knew was the algorithm developed in 1988 by James Dow Allen and Victor Allis to solve the game for the player going first. 
 
 - Credits: N/A
 
