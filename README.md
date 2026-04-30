@@ -35,9 +35,7 @@ Final Project for CS32
 
 - Tests: In progress
 
-- How to use: 
-
-
+- How to use:
 ---
 
 ## Requirements
@@ -50,7 +48,7 @@ Final Project for CS32
 
 ## How to Use
 
-### Mode 1: Terminal — Local Two-Player
+### Mode 1: Terminal — Local Two-Player (This is a primitive version and isn't the final version of our project)
 
 Both players share one keyboard on one machine. No browser or network needed.
 
