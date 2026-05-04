@@ -22,19 +22,19 @@ from c4 import (
     is_valid_column,
 )
 
-# ----- Network config (same defaults as c4server.py) -----
+
 TCP_HOST = "0.0.0.0"   # listen on all interfaces so a remote Player O can connect
 TCP_PORT = 65432
 WEB_PORT = 5000
 
-# ----- Shared state, guarded by a lock -----
+# this is a Shared state, guarded by a lock
 state_lock = threading.Lock()
 state = {
     "board": create_board(),
     "score_x": 0,
     "score_o": 0,
     "current_piece": "X",
-    "phase": "waiting_for_opponent",  # waiting_for_opponent | your_turn | their_turn | game_over | session_ended | disconnected
+    "phase": "waiting_for_opponent",  # waiting_for_opponent --> your_turn --> their_turn --> game_over --> session_ended --> disconnected
     "result": "",
 }
 
@@ -50,7 +50,7 @@ replay_event = threading.Event()
 conn_holder = {"conn": None}
 
 
-# --- TCP message helpers (identical wire format to c4server.py) ---
+# these are the TCP message helpers
 def send_message(conn, message):
     conn.sendall((message + "\n").encode())
 
@@ -78,7 +78,7 @@ def wait_for_web_move():
         with state_lock:
             if is_valid_column(state["board"], col):
                 return col
-        # invalid — loop and wait for another
+
 
 
 def wait_for_web_replay():
@@ -98,7 +98,7 @@ def game_loop(conn):
     conn_holder["conn"] = conn
 
     while True:
-        # New game setup — same messages as c4server.py
+        # New game setup, the same messages as c4server.py
         with state_lock:
             state["board"] = create_board()
             state["current_piece"] = "X"
@@ -136,7 +136,7 @@ def game_loop(conn):
                         row = get_next_open_row(state["board"], col)
                         drop_piece(state["board"], row, col, "O")
 
-            # --- win/draw checks (same logic as c4server.py) ---
+            # these are win/draw checks (same logic as c4server.py)
             with state_lock:
                 won = check_win(state["board"], current_piece)
                 full = board_full(state["board"])
@@ -164,7 +164,7 @@ def game_loop(conn):
             with state_lock:
                 state["current_piece"] = "O" if current_piece == "X" else "X"
 
-        # --- replay decision (same protocol as c4server.py) ---
+        #  this is the replay decision (same protocol as c4server.py)
         choice = wait_for_web_replay()
         if choice == "y":
             send_message(conn, "REPLAY y")
@@ -196,7 +196,7 @@ def tcp_server_thread():
                     state["phase"] = "disconnected"
 
 
-# ----- Flask app -----
+# setting up the Flask app!
 app = Flask(__name__)
 
 

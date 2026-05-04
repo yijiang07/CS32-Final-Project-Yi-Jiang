@@ -1,7 +1,7 @@
 """
-c4web_client.py — Flask web UI for Player O.
+c4web_client.py: this is the Flask web UI for Player O.
 
-Does NOT modify any game logic. Imports from c4.py, uses the same TCP
+Important to note is that it does NOT modify any game logic. Imports from c4.py, uses the same TCP
 protocol as c4client.py.
 
 If Player X is on a different machine, change SERVER_HOST to their IP.
@@ -81,13 +81,13 @@ def apply_result(parts):
 
 def client_loop(sock):
     """
-    Fix summary:
+    in this part we implemented a fix for network synchronization summary:
     - NEW_GAME now explicitly resets the board so O's screen clears cleanly.
     - After applying X's MOVE, we use select() to check whether the server
       immediately sent a RESULT (win/draw). select() returns in microseconds
-      when data is already in the buffer, and waits up to 2 s otherwise —
-      long enough to be reliable on any network, fast enough to feel instant.
-      No futile move from O is ever required.
+      when data is already in the buffer, and waits up to 2 s otherwise. This is just
+      long enough to be reliable on any network, but also fast enough to feel instant from the user's perspective.
+
     """
     while True:
         with state_lock:
@@ -145,14 +145,12 @@ def client_loop(sock):
                         if next_msg.startswith("RESULT "):
                             apply_result(next_msg.split())
                             break
-                        # Unexpected message — handle it gracefully
+
                         if next_msg.startswith("SCORES "):
                             parts = next_msg.split()
                             with state_lock:
                                 state["score_x"] = int(parts[1])
                                 state["score_o"] = int(parts[2])
-                    # Either no data within 2 s, or a non-RESULT message —
-                    # fall through and let O take their turn.
 
                 elif data.startswith("RESULT "):
                     apply_result(data.split())

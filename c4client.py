@@ -95,7 +95,7 @@ def main():
                     send_message(s, f"MOVE {col}")
 
                     if check_win(board, current_piece):
-                        # local board update only; server still decides official result
+                        # local board update only, but the server still decides official result
                         pass
 
                 current_piece = "O" if current_piece == "X" else "X"

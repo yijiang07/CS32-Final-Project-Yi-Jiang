@@ -1,14 +1,14 @@
 """
 c4web_ai_server.py — Flask web UI for Impossible Mode.
 
-The AI plays as Player X automatically using minimax + alpha-beta (c4ai.py).
+The AI plays as Player X automatically using minimax and alpha-beta pruning, which is specified in c4ai.py.
 The human plays as Player O in the browser.
 
-All game logic is unchanged — this file only wires the AI's get_best_move()
+All the main game logic is unchanged, but this file only wires the AI's get_best_move()
 into the same game loop used by c4web_server.py.
 
-Run:  python3 c4web_ai_server.py
-Then open http://localhost:5002 in your browser.
+The way it works is you just run python3 c4web_ai_server.py
+Then open http://localhost:5002 in your browser, it should come up as a pop up. Read the ReadME for more instructions if not clear.
 """
 import threading
 from flask import Flask, render_template, jsonify, request
@@ -84,7 +84,7 @@ def ai_game_loop():
             state["game_id"] += 1
 
         while True:
-            # --- AI's turn (X) ---
+            #  AI's turn (X)
             with state_lock:
                 state["phase"] = "ai_thinking"
                 board_snapshot = [row[:] for row in state["board"]]
@@ -107,7 +107,7 @@ def ai_game_loop():
                     state["phase"] = "game_over"
                     break
 
-            # --- Human's turn (O) ---
+            #  Human's turn (O)
             with state_lock:
                 state["phase"] = "your_turn"
 
@@ -128,13 +128,13 @@ def ai_game_loop():
                     state["phase"] = "game_over"
                     break
 
-        # --- Replay ---
+        #  Replay option
         choice = wait_for_replay()
         if choice == "n":
             with state_lock:
                 state["phase"] = "session_ended"
             return
-        # choice == "y" → outer loop resets board
+        # choice == "y" means that the outer loop resets board
 
 
 app = Flask(__name__)
